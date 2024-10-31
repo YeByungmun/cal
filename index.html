@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>월간 날짜 선택 달력</title>
+     <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        .calendar-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .selected {
+            background-color: #db53ce;
+            color: white;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .controls button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 4px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #currentYearMonth {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .today {
+            background-color: #4CAF50;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+     <div class="calendar-container">
+        <div class="controls">
+            <button onclick="changeMonth(-1)">이전 달</button>
+            <button onclick="goToCurrentMonth()">현재 월</button>
+            <button onclick="changeMonth(1)">다음 달</button>
+        </div>
+        <div id="currentMonthYear"></div>
+        <div id="calendar"></div>
+        <div id="monthlyCount"></div>
+    </div>
+
+    <script>
+        const calendar = document.getElementById('calendar');
+        const currentMonthYearElement = document.getElementById('currentMonthYear');
+        const monthlyCountElement = document.getElementById('monthlyCount');
+        let currentDate = new Date();
+        let displayedYear = currentDate.getFullYear();
+        let displayedMonth = currentDate.getMonth();
+        let selectedDates = new Set(JSON.parse(localStorage.getItem('selectedDates')) || []);
+
+        function createCalendar(year, month) {
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            
+            currentMonthYearElement.textContent = `${year}년 ${month + 1}월`;
+
+            let html = '<table>';
+            html += '<tr><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr>';
+
+            let date = 1;
+            for (let i = 0; i < 6; i++) {
+                html += '<tr>';
+                for (let j = 0; j < 7; j++) {
+                    if (i === 0 && j < firstDay.getDay()) {
+                        html += '<td></td>';
+                    } else if (date > lastDay.getDate()) {
+                        html += '<td></td>';
+                    } else {
+                        const dateString = `${year}-${(month + 1).toString().padStart(2, '0')}-${date.toString().padStart(2, '0')}`;
+                        const className = selectedDates.has(dateString) ? 'selected' : '';
+                        html += `<td class="${className}" data-date="${dateString}">${date}</td>`;
+                        date++;
+                    }
+                }
+                html += '</tr>';
+                if (date > lastDay.getDate()) break;
+            }
+            html += '</table>';
+            calendar.innerHTML = html;
+
+            // 날짜 클릭 이벤트 추가
+            const cells = calendar.getElementsByTagName('td');
+            for (let cell of cells) {
+                cell.addEventListener('click', toggleDate);
+            }
+
+            updateMonthlyCount();
+        }
+
+        function toggleDate(e) {
+            const selectedDate = e.target.dataset.date;
+            if (!selectedDate) return;
+
+            if (selectedDates.has(selectedDate)) {
+                selectedDates.delete(selectedDate);
+                e.target.classList.remove('selected');
+            } else {
+                selectedDates.add(selectedDate);
+                e.target.classList.add('selected');
+            }
+
+            // 선택된 날짜들을 localStorage에 저장
+            localStorage.setItem('selectedDates', JSON.stringify(Array.from(selectedDates)));
+
+            updateMonthlyCount();
+        }
+
+        function changeMonth(delta) {
+            displayedMonth += delta;
+            if (displayedMonth > 11) {
+                displayedMonth = 0;
+                displayedYear++;
+            } else if (displayedMonth < 0) {
+                displayedMonth = 11;
+                displayedYear--;
+            }
+            createCalendar(displayedYear, displayedMonth);
+        }
+
+        function goToCurrentMonth() {
+            displayedYear = currentDate.getFullYear();
+            displayedMonth = currentDate.getMonth();
+            createCalendar(displayedYear, displayedMonth);
+        }
+
+        function updateMonthlyCount() {
+            const monthlySelectedDates = Array.from(selectedDates).filter(date => {
+                const [year, month] = date.split('-').map(Number);
+                return year === displayedYear && month === displayedMonth + 1;
+            });
+            monthlyCountElement.textContent = `이번 달 선택된 날짜 수: ${monthlySelectedDates.length}`;
+        }
+
+        createCalendar(displayedYear, displayedMonth);
+    </script>
+</body>
+</html>
