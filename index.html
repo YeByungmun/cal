@@ -1,174 +1,395 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <title>월간 날짜 선택 달력</title>
-     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-        }
-        .calendar-container {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 10px;
-            text-align: center;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .selected {
-            background-color: #db53ce;
-            color: white;
-        }
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        .controls button {
-            background-color: #4CAF50;
-            border: none;
-            color: white;
-            padding: 10px 15px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
-            font-size: 14px;
-            margin: 4px 2px;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        #currentYearMonth {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .today {
-            background-color: #4CAF50;
-            color: white;
-            font-weight: bold;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>인터랙티브 달력</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-content: center; padding: 2rem; }
+
+.cal-wrap { max-width: 480px; width: 100%; }
+
+/* ── 네비게이션 ── */
+.nav-row {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px; gap: 4px;
+}
+.nav-group { display: flex; align-items: center; gap: 2px; }
+.nav-btn {
+  background: transparent; border: 0.5px solid #ccc;
+  border-radius: 8px; padding: 5px 9px;
+  cursor: pointer; font-size: 13px; color: #333;
+  transition: background .15s;
+}
+.nav-btn:hover { background: #f0f0ef; }
+.nav-label  { font-size: 16px; font-weight: 500; min-width: 52px; text-align: center; }
+.year-label { font-size: 16px; font-weight: 500; min-width: 60px; text-align: center; }
+
+/* ── 월 칩 ── */
+.month-row {
+  display: flex; align-items: center;
+  justify-content: center;
+  gap: 6px; margin-bottom: 12px; flex-wrap: wrap;
+}
+.month-chip {
+  border: 0.5px solid #ddd; border-radius: 20px;
+  padding: 3px 12px 3px 10px; font-size: 12px;
+  cursor: pointer; background: transparent; color: #888;
+  transition: all .15s;
+  display: flex; align-items: center; gap: 5px;
+}
+.month-chip:hover { background: #f0f0ef; color: #333; }
+.month-chip.active {
+  background: #dbeafe; color: #1d4ed8;
+  border-color: #93c5fd; font-weight: 500;
+}
+
+/* 선택 데이터가 있는 월의 도트 */
+.chip-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  flex-shrink: 0; display: none;
+}
+.month-chip.has-data .chip-dot { display: inline-block; }
+
+/* ── 요일 헤더 ── */
+.dow-row {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 2px; margin-bottom: 4px;
+}
+.dow { text-align: center; font-size: 12px; font-weight: 500; color: #888; padding: 4px 0; }
+.dow.sun { color: #ef4444; }
+.dow.sat { color: #3b82f6; }
+
+/* ── 날짜 그리드 ── */
+.days-grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.day-cell {
+  aspect-ratio: 1;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%; font-size: 14px; cursor: pointer;
+  transition: background .12s, transform .1s;
+  color: #333; border: 0.5px solid transparent;
+}
+.day-cell:hover  { background: #f0f0ef; }
+.day-cell:active { transform: scale(0.92); }
+.day-cell.empty  { cursor: default; pointer-events: none; }
+.day-cell.today  { border-color: #3b82f6; font-weight: 500; color: #1d4ed8; }
+.day-cell.sun    { color: #ef4444; }
+.day-cell.sat    { color: #3b82f6; }
+
+/* ── 선택 색상 5종 ── */
+.day-cell.selected-1 { background: #bde0fe; color: #0c447c; }
+.day-cell.selected-2 { background: #b5ead7; color: #085041; }
+.day-cell.selected-3 { background: #ffc8dd; color: #72243e; }
+.day-cell.selected-4 { background: #ffd6a5; color: #633806; }
+.day-cell.selected-5 { background: #d4a5c9; color: #4b1528; }
+
+/* ── 팔레트 ── */
+.palette-row {
+  display: flex; align-items: center;
+  gap: 6px; margin-top: 14px; flex-wrap: wrap;
+}
+.palette-label { font-size: 12px; color: #888; }
+.color-dot {
+  width: 22px; height: 22px; border-radius: 50%;
+  cursor: pointer; border: 2px solid transparent;
+  transition: transform .1s, border-color .1s;
+}
+.color-dot:hover  { transform: scale(1.15); }
+.color-dot.picked { border-color: #333; }
+
+/* ── 버튼 행 ── */
+.btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.action-btn {
+  font-size: 12px; padding: 5px 14px; cursor: pointer;
+  background: transparent; border: 0.5px solid #ccc;
+  border-radius: 8px; color: #888;
+  transition: background .15s;
+}
+.action-btn:hover { background: #f0f0ef; }
+.today-btn { border-color: #93c5fd; color: #1d4ed8; font-weight: 500; }
+.today-btn:hover { background: #dbeafe; }
+
+/* ── 범례 ── */
+.legend { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
+.leg-item { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #888; }
+.leg-dot  { width: 12px; height: 12px; border-radius: 50%; }
+
+/* ── 날짜 간격 섹션 ── */
+.diff-section {
+  margin-top: 16px;
+  border-top: 0.5px solid #e5e5e5;
+  padding-top: 14px;
+}
+.diff-title {
+  font-size: 12px; font-weight: 500; color: #888;
+  margin-bottom: 8px;
+  display: flex; align-items: center; gap: 6px;
+}
+.diff-list  { display: flex; flex-direction: column; gap: 6px; }
+.diff-row {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px; color: #333;
+  background: #f5f5f3; border-radius: 8px;
+  padding: 7px 10px;
+}
+.diff-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.diff-from { color: #888; font-size: 12px; min-width: 90px; }
+.diff-to   { font-weight: 500; min-width: 90px; }
+.diff-gap  { margin-left: auto; font-size: 12px; color: #1d4ed8; font-weight: 500; white-space: nowrap; }
+.diff-empty { font-size: 13px; color: #aaa; padding: 6px 0; }
+</style>
 </head>
 <body>
-     <div class="calendar-container">
-        <div class="controls">
-            <button onclick="changeMonth(-1)">이전 달</button>
-            <button onclick="goToCurrentMonth()">현재 월</button>
-            <button onclick="changeMonth(1)">다음 달</button>
-        </div>
-        <div id="currentMonthYear"></div>
-        <div id="calendar"></div>
-        <div id="monthlyCount"></div>
+<div class="cal-wrap">
+
+  <!-- 연도 / 월 네비게이션 -->
+  <div class="nav-row">
+    <div class="nav-group">
+      <button class="nav-btn" id="prevYear"><i class="ti ti-chevrons-left"></i></button>
+      <span class="year-label" id="yearLabel"></span>
+      <button class="nav-btn" id="nextYear"><i class="ti ti-chevrons-right"></i></button>
     </div>
+    <div class="nav-group">
+      <button class="nav-btn" id="prevMonth"><i class="ti ti-chevron-left"></i></button>
+      <span class="nav-label" id="monthLabel"></span>
+      <button class="nav-btn" id="nextMonth"><i class="ti ti-chevron-right"></i></button>
+    </div>
+  </div>
 
-    <script>
-        const calendar = document.getElementById('calendar');
-        const currentMonthYearElement = document.getElementById('currentMonthYear');
-        const monthlyCountElement = document.getElementById('monthlyCount');
-        let currentDate = new Date();
-        let displayedYear = currentDate.getFullYear();
-        let displayedMonth = currentDate.getMonth();
-        let selectedDates = new Set(JSON.parse(localStorage.getItem('selectedDates')) || []);
+  <!-- 월 빠른 선택 칩 (선택 데이터 있으면 컬러 도트 표시) -->
+  <div class="month-row" id="monthRow"></div>
 
-        function createCalendar(year, month) {
-            const firstDay = new Date(year, month, 1);
-            const lastDay = new Date(year, month + 1, 0);
-            
-            currentMonthYearElement.textContent = `${year}년 ${month + 1}월`;
+  <!-- 요일 헤더 -->
+  <div class="dow-row">
+    <div class="dow sun">일</div>
+    <div class="dow">월</div>
+    <div class="dow">화</div>
+    <div class="dow">수</div>
+    <div class="dow">목</div>
+    <div class="dow">금</div>
+    <div class="dow sat">토</div>
+  </div>
 
-            let html = '<table>';
-            html += '<tr><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr>';
+  <!-- 날짜 그리드 -->
+  <div class="days-grid" id="daysGrid"></div>
 
-            let date = 1;
-            for (let i = 0; i < 6; i++) {
-                html += '<tr>';
-                for (let j = 0; j < 7; j++) {
-                    if (i === 0 && j < firstDay.getDay()) {
-                        html += '<td></td>';
-                    } else if (date > lastDay.getDate()) {
-                        html += '<td></td>';
-                    } else {
-                        const dateString = `${year}-${(month + 1).toString().padStart(2, '0')}-${date.toString().padStart(2, '0')}`;
-                        const className = selectedDates.has(dateString) ? 'selected' : '';
-                        html += `<td class="${className}" data-date="${dateString}">${date}</td>`;
-                        date++;
-                    }
-                }
-                html += '</tr>';
-                if (date > lastDay.getDate()) break;
-            }
-            html += '</table>';
-            calendar.innerHTML = html;
+  <!-- 색상 팔레트 -->
+  <div class="palette-row">
+    <span class="palette-label">색상 선택:</span>
+    <div class="color-dot picked" data-c="1" style="background:#bde0fe" title="하늘색"></div>
+    <div class="color-dot"        data-c="2" style="background:#b5ead7" title="민트"></div>
+    <div class="color-dot"        data-c="3" style="background:#ffc8dd" title="핑크"></div>
+    <div class="color-dot"        data-c="4" style="background:#ffd6a5" title="노랑"></div>
+    <div class="color-dot"        data-c="5" style="background:#d4a5c9" title="보라"></div>
+  </div>
 
-            // 날짜 클릭 이벤트 추가
-            const cells = calendar.getElementsByTagName('td');
-            for (let cell of cells) {
-                cell.addEventListener('click', toggleDate);
-            }
+  <!-- 버튼 행 -->
+  <div class="btn-row">
+    <button class="action-btn today-btn" id="todayBtn">
+      <i class="ti ti-home" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>오늘로 이동
+    </button>
+    <button class="action-btn" id="clearBtn">
+      <i class="ti ti-trash" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>이번 달 초기화
+    </button>
+  </div>
 
-            updateMonthlyCount();
-        }
+  <!-- 범례 -->
+  <div class="legend" id="legend"></div>
 
-        function toggleDate(e) {
-            const selectedDate = e.target.dataset.date;
-            if (!selectedDate) return;
+  <!-- 날짜 간격 섹션 -->
+  <div class="diff-section">
+    <div class="diff-title">
+      <i class="ti ti-calendar-stats" style="font-size:15px"></i>선택 날짜 간격
+    </div>
+    <div class="diff-list" id="diffList">
+      <div class="diff-empty">날짜를 2개 이상 선택하면 간격이 표시됩니다.</div>
+    </div>
+  </div>
+</div>
 
-            if (selectedDates.has(selectedDate)) {
-                selectedDates.delete(selectedDate);
-                e.target.classList.remove('selected');
-            } else {
-                selectedDates.add(selectedDate);
-                e.target.classList.add('selected');
-            }
+<script>
+const MONTHS      = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+const COLOR_NAMES = { 1:'하늘색', 2:'민트', 3:'핑크', 4:'노랑', 5:'보라' };
+const COLOR_HEX   = { 1:'#bde0fe', 2:'#b5ead7', 3:'#ffc8dd', 4:'#ffd6a5', 5:'#d4a5c9' };
+const STORE_KEY   = 'cal_selected_v2';
 
-            // 선택된 날짜들을 localStorage에 저장
-            localStorage.setItem('selectedDates', JSON.stringify(Array.from(selectedDates)));
+let today  = new Date();
+let view   = { y: today.getFullYear(), m: today.getMonth() };
+let picked = 1;
+let data   = {};
 
-            updateMonthlyCount();
-        }
+/* ── localStorage ── */
+function load() {
+  try { const s = localStorage.getItem(STORE_KEY); if (s) data = JSON.parse(s); }
+  catch(e) { data = {}; }
+}
+function save() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
+  catch(e) {}
+}
 
-        function changeMonth(delta) {
-            displayedMonth += delta;
-            if (displayedMonth > 11) {
-                displayedMonth = 0;
-                displayedYear++;
-            } else if (displayedMonth < 0) {
-                displayedMonth = 11;
-                displayedYear--;
-            }
-            createCalendar(displayedYear, displayedMonth);
-        }
+/* ── 유틸 ── */
+function key(y, m, d)  { return `${y}-${m + 1}-${d}`; }
+function keyToDate(k)  { const p = k.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+function keyToLabel(k) { const p = k.split('-'); return `${p[0]}년 ${p[1]}월 ${p[2]}일`; }
 
-        function goToCurrentMonth() {
-            displayedYear = currentDate.getFullYear();
-            displayedMonth = currentDate.getMonth();
-            createCalendar(displayedYear, displayedMonth);
-        }
+function diffLabel(ms) {
+  const td = Math.round(ms / 86400000);
+  if (td === 0) return '같은 날';
+  const mo = Math.floor(td / 30), dy = td % 30;
+  if (mo === 0) return `${td}일`;
+  if (dy === 0) return `${mo}개월`;
+  return `${mo}개월 ${dy}일 (총 ${td}일)`;
+}
 
-        function updateMonthlyCount() {
-            const monthlySelectedDates = Array.from(selectedDates).filter(date => {
-                const [year, month] = date.split('-').map(Number);
-                return year === displayedYear && month === displayedMonth + 1;
-            });
-            monthlyCountElement.textContent = `이번 달 선택된 날짜 수: ${monthlySelectedDates.length}`;
-        }
+/*
+ * 해당 연도·월에 선택된 날짜 중 가장 많이 쓰인 색상 번호를 반환.
+ * 선택된 날짜가 없으면 null 반환.
+ */
+function monthDotColor(y, m) {
+  const prefix = `${y}-${m + 1}-`;
+  const colors = Object.entries(data)
+    .filter(([k]) => k.startsWith(prefix))
+    .map(([, v]) => v);
+  if (!colors.length) return null;
+  const cnt = {};
+  colors.forEach(c => { cnt[c] = (cnt[c] || 0) + 1; });
+  return +Object.entries(cnt).sort((a, b) => b[1] - a[1])[0][0];
+}
 
-        createCalendar(displayedYear, displayedMonth);
-    </script>
+/* ── 날짜 간격 렌더링 ── */
+function renderDiff() {
+  const list   = document.getElementById('diffList');
+  const sorted = Object.keys(data).sort((a, b) => keyToDate(a) - keyToDate(b));
+
+  if (sorted.length < 2) {
+    list.innerHTML = '<div class="diff-empty">날짜를 2개 이상 선택하면 간격이 표시됩니다.</div>';
+    return;
+  }
+
+  let html = '';
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = sorted[i - 1], cur = sorted[i];
+    const ms   = keyToDate(cur) - keyToDate(prev);
+    const c    = data[prev];
+    html += `
+      <div class="diff-row">
+        <div class="diff-dot" style="background:${COLOR_HEX[c]}"></div>
+        <span class="diff-from">${keyToLabel(prev)}</span>
+        <i class="ti ti-arrow-right" style="font-size:13px;color:#aaa"></i>
+        <span class="diff-to">${keyToLabel(cur)}</span>
+        <span class="diff-gap">${diffLabel(ms)}</span>
+      </div>`;
+  }
+  list.innerHTML = html;
+}
+
+/* ── 전체 렌더링 ── */
+function render() {
+  document.getElementById('yearLabel').textContent  = view.y + '년';
+  document.getElementById('monthLabel').textContent = MONTHS[view.m];
+
+  /* 월 칩: 선택 데이터가 있는 월에는 컬러 도트 표시 */
+  const mr = document.getElementById('monthRow');
+  mr.innerHTML = '';
+  MONTHS.forEach((mn, i) => {
+    const dotColor = monthDotColor(view.y, i);
+    const b = document.createElement('button');
+    b.className = 'month-chip' + (i === view.m ? ' active' : '') + (dotColor ? ' has-data' : '');
+    b.innerHTML = `<span class="chip-dot" style="background:${COLOR_HEX[dotColor]}"></span>${mn}`;
+    b.onclick   = () => { view.m = i; render(); };
+    mr.appendChild(b);
+  });
+
+  /* 날짜 그리드 */
+  const grid     = document.getElementById('daysGrid');
+  grid.innerHTML = '';
+  const firstDow = new Date(view.y, view.m, 1).getDay();
+  const lastDay  = new Date(view.y, view.m + 1, 0).getDate();
+
+  for (let i = 0; i < firstDow; i++) {
+    const c = document.createElement('div');
+    c.className = 'day-cell empty';
+    grid.appendChild(c);
+  }
+
+  for (let d = 1; d <= lastDay; d++) {
+    const dow = (firstDow + d - 1) % 7;
+    const c   = document.createElement('div');
+    let cls   = 'day-cell';
+    if (dow === 0) cls += ' sun';
+    if (dow === 6) cls += ' sat';
+
+    const isToday = d === today.getDate()
+                 && view.m === today.getMonth()
+                 && view.y === today.getFullYear();
+    if (isToday) cls += ' today';
+
+    const k = key(view.y, view.m, d);
+    if (data[k]) cls += ' selected-' + data[k];
+
+    c.className   = cls;
+    c.textContent = d;
+    c.onclick     = () => toggleDay(d);
+    grid.appendChild(c);
+  }
+
+  /* 범례 */
+  const used = {};
+  Object.values(data).forEach(c => { used[c] = true; });
+  const leg = document.getElementById('legend');
+  leg.innerHTML = '';
+  Object.keys(used).forEach(c => {
+    const cnt = Object.values(data).filter(v => v == c).length;
+    const el  = document.createElement('div');
+    el.className = 'leg-item';
+    el.innerHTML = `<div class="leg-dot" style="background:${COLOR_HEX[c]}"></div>${COLOR_NAMES[c]} ${cnt}일`;
+    leg.appendChild(el);
+  });
+
+  renderDiff();
+}
+
+/* ── 날짜 클릭 토글 ── */
+function toggleDay(d) {
+  const k = key(view.y, view.m, d);
+  if (data[k] === picked) { delete data[k]; } else { data[k] = picked; }
+  save();
+  render();
+}
+
+/* ── 버튼 이벤트 ── */
+document.getElementById('todayBtn').onclick  = () => { view = { y: today.getFullYear(), m: today.getMonth() }; render(); };
+document.getElementById('prevYear').onclick  = () => { view.y--; render(); };
+document.getElementById('nextYear').onclick  = () => { view.y++; render(); };
+document.getElementById('prevMonth').onclick = () => { if (view.m === 0) { view.m = 11; view.y--; } else { view.m--; } render(); };
+document.getElementById('nextMonth').onclick = () => { if (view.m === 11) { view.m = 0; view.y++; } else { view.m++; } render(); };
+
+document.querySelectorAll('.color-dot').forEach(dot => {
+  dot.onclick = () => {
+    document.querySelectorAll('.color-dot').forEach(d => d.classList.remove('picked'));
+    dot.classList.add('picked');
+    picked = parseInt(dot.dataset.c);
+  };
+});
+
+document.getElementById('clearBtn').onclick = () => {
+  const prefix = `${view.y}-${view.m + 1}-`;
+  Object.keys(data).forEach(k => { if (k.startsWith(prefix)) delete data[k]; });
+  save();
+  render();
+};
+
+/* ── 초기 실행 ── */
+load();
+render();
+</script>
 </body>
 </html>
