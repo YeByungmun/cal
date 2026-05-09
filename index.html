@@ -9,71 +9,36 @@
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-content: center; padding: 2rem; }
-
 .cal-wrap { max-width: 480px; width: 100%; }
 
 /* ── 네비게이션 ── */
-.nav-row {
-  display: flex; align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px; gap: 4px;
-}
+.nav-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; gap: 4px; }
 .nav-group { display: flex; align-items: center; gap: 2px; }
-.nav-btn {
-  background: transparent; border: 0.5px solid #ccc;
-  border-radius: 8px; padding: 5px 9px;
-  cursor: pointer; font-size: 13px; color: #333;
-  transition: background .15s;
-}
+.nav-btn { background: transparent; border: 0.5px solid #ccc; border-radius: 8px; padding: 5px 9px; cursor: pointer; font-size: 13px; color: #333; transition: background .15s; }
 .nav-btn:hover { background: #f0f0ef; }
 .nav-label  { font-size: 16px; font-weight: 500; min-width: 52px; text-align: center; }
 .year-label { font-size: 16px; font-weight: 500; min-width: 60px; text-align: center; }
 
 /* ── 월 칩 ── */
-.month-row {
-  display: flex; align-items: center;
-  justify-content: center;
-  gap: 6px; margin-bottom: 12px; flex-wrap: wrap;
-}
-.month-chip {
-  border: 0.5px solid #ddd; border-radius: 20px;
-  padding: 3px 12px 3px 10px; font-size: 12px;
-  cursor: pointer; background: transparent; color: #888;
-  transition: all .15s;
-  display: flex; align-items: center; gap: 5px;
-}
+.month-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.month-chip { border: 0.5px solid #ddd; border-radius: 20px; padding: 3px 12px; font-size: 12px; cursor: pointer; background: transparent; color: #888; transition: all .15s; }
 .month-chip:hover { background: #f0f0ef; color: #333; }
-.month-chip.active {
-  background: #dbeafe; color: #1d4ed8;
-  border-color: #93c5fd; font-weight: 500;
-}
-.chip-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  flex-shrink: 0; display: none;
-}
-.month-chip.has-data .chip-dot { display: inline-block; }
+/* 데이터 있는 월: 파란 배경 + 흰 글자 */
+.month-chip.has-data  { background: #3b82f6; color: #fff; border-color: #3b82f6; font-weight: 500; }
+.month-chip.has-data:hover { background: #2563eb; border-color: #2563eb; }
+/* 현재 보고 있는 달: 더 진한 파란색 */
+.month-chip.active    { background: #1d4ed8; color: #fff; border-color: #1d4ed8; font-weight: 500; }
+.month-chip.has-data.active { background: #1d4ed8; border-color: #1d4ed8; }
 
 /* ── 요일 헤더 ── */
-.dow-row {
-  display: grid; grid-template-columns: repeat(7, 1fr);
-  gap: 2px; margin-bottom: 4px;
-}
+.dow-row { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 4px; }
 .dow { text-align: center; font-size: 12px; font-weight: 500; color: #888; padding: 4px 0; }
 .dow.sun { color: #ef4444; }
 .dow.sat { color: #3b82f6; }
 
 /* ── 날짜 그리드 ── */
-.days-grid {
-  display: grid; grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
-}
-.day-cell {
-  aspect-ratio: 1;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 50%; font-size: 14px; cursor: pointer;
-  transition: background .12s, transform .1s;
-  color: #333; border: 0.5px solid transparent;
-}
+.days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.day-cell { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 14px; cursor: pointer; transition: background .12s, transform .1s; color: #333; border: 0.5px solid transparent; }
 .day-cell:hover  { background: #f0f0ef; }
 .day-cell:active { transform: scale(0.92); }
 .day-cell.empty  { cursor: default; pointer-events: none; }
@@ -87,32 +52,24 @@ body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-cont
 .day-cell.selected-5 { background: #d4a5c9; color: #4b1528; }
 
 /* ── 팔레트 ── */
-.palette-row {
-  display: flex; align-items: center;
-  gap: 6px; margin-top: 14px; flex-wrap: wrap;
-}
+.palette-row { display: flex; align-items: center; gap: 6px; margin-top: 14px; flex-wrap: wrap; }
 .palette-label { font-size: 12px; color: #888; }
-.color-dot {
-  width: 22px; height: 22px; border-radius: 50%;
-  cursor: pointer; border: 2px solid transparent;
-  transition: transform .1s, border-color .1s;
-}
+.color-dot { width: 22px; height: 22px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: transform .1s, border-color .1s; }
 .color-dot:hover  { transform: scale(1.15); }
 .color-dot.picked { border-color: #333; }
 
 /* ── 버튼 행 ── */
 .btn-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-.action-btn {
-  font-size: 12px; padding: 5px 14px; cursor: pointer;
-  background: transparent; border: 0.5px solid #ccc;
-  border-radius: 8px; color: #888;
-  transition: background .15s;
-}
+.action-btn { font-size: 12px; padding: 5px 14px; cursor: pointer; background: transparent; border: 0.5px solid #ccc; border-radius: 8px; color: #888; transition: all .15s; }
 .action-btn:hover  { background: #f0f0ef; }
 .today-btn  { border-color: #93c5fd; color: #1d4ed8; font-weight: 500; }
 .today-btn:hover  { background: #dbeafe; }
 .export-btn { border-color: #6ee7b7; color: #065f46; font-weight: 500; }
 .export-btn:hover { background: #d1fae5; }
+.gh-save-btn { border-color: #8b5cf6; color: #5b21b6; font-weight: 500; }
+.gh-save-btn:hover { background: #ede9fe; }
+.gh-load-btn { border-color: #f59e0b; color: #92400e; font-weight: 500; }
+.gh-load-btn:hover { background: #fef3c7; }
 
 /* ── 범례 ── */
 .legend { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
@@ -120,67 +77,41 @@ body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-cont
 .leg-dot  { width: 12px; height: 12px; border-radius: 50%; }
 
 /* ── 날짜 간격 섹션 ── */
-.diff-section {
-  margin-top: 16px;
-  border-top: 0.5px solid #e5e5e5;
-  padding-top: 14px;
-}
-.diff-title {
-  font-size: 12px; font-weight: 500; color: #888;
-  margin-bottom: 8px;
-  display: flex; align-items: center; gap: 6px;
-}
+.diff-section { margin-top: 16px; border-top: 0.5px solid #e5e5e5; padding-top: 14px; }
+.diff-title { font-size: 12px; font-weight: 500; color: #888; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
 .diff-list  { display: flex; flex-direction: column; gap: 6px; }
-.diff-row {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 13px; color: #333;
-  background: #f5f5f3; border-radius: 8px;
-  padding: 7px 10px;
-}
+.diff-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #333; background: #f5f5f3; border-radius: 8px; padding: 7px 10px; }
 .diff-dot  { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 .diff-from { color: #888; font-size: 12px; min-width: 90px; }
 .diff-to   { font-weight: 500; min-width: 90px; }
 .diff-gap  { margin-left: auto; font-size: 12px; color: #1d4ed8; font-weight: 500; white-space: nowrap; }
 .diff-empty { font-size: 13px; color: #aaa; padding: 6px 0; }
 
+/* ── GitHub 설정 패널 ── */
+.gh-section { margin-top: 16px; border-top: 0.5px solid #e5e5e5; padding-top: 14px; }
+.gh-title { font-size: 12px; font-weight: 500; color: #888; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.gh-fields { display: flex; flex-direction: column; gap: 6px; }
+.gh-field  { display: flex; flex-direction: column; gap: 3px; }
+.gh-label  { font-size: 11px; color: #aaa; }
+.gh-input  { font-size: 12px; padding: 5px 10px; border: 0.5px solid #ccc; border-radius: 8px; background: #fff; color: #333; outline: none; width: 100%; }
+.gh-input:focus { border-color: #3b82f6; }
+.gh-row  { display: flex; gap: 8px; }
+.gh-hint { font-size: 11px; color: #aaa; margin-top: 6px; line-height: 1.6; }
+
 /* ── 토스트 ── */
-.toast {
-  position: fixed; left: 50%; transform: translateX(-50%);
-  bottom: 24px; background: #222; color: #fff;
-  font-size: 12px; padding: 7px 18px;
-  border-radius: 20px; opacity: 0;
-  transition: opacity .3s; pointer-events: none;
-  white-space: nowrap; z-index: 999;
-}
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: 24px; background: #222; color: #fff; font-size: 12px; padding: 7px 18px; border-radius: 20px; opacity: 0; transition: opacity .3s; pointer-events: none; white-space: nowrap; z-index: 999; }
 .toast.show { opacity: 1; }
 
 /* ── 모달 ── */
-.modal-bg {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.35); z-index: 100;
-  align-items: center; justify-content: center;
-}
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.35); z-index: 100; align-items: center; justify-content: center; }
 .modal-bg.show { display: flex; }
-.modal {
-  background: #fff; border-radius: 14px;
-  padding: 20px; max-width: 340px; width: 90%;
-  box-shadow: 0 8px 32px rgba(0,0,0,.18);
-}
+.modal { background: #fff; border-radius: 14px; padding: 20px; max-width: 340px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,.18); }
 .modal h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
 .modal p  { font-size: 13px; color: #666; margin-bottom: 14px; line-height: 1.6; }
 .modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
-.modal-btn {
-  font-size: 13px; padding: 6px 16px;
-  border-radius: 8px; cursor: pointer;
-  border: 0.5px solid #ccc;
-  background: transparent; color: #888;
-}
-.modal-btn.primary {
-  background: #dbeafe; color: #1d4ed8;
-  border-color: #93c5fd; font-weight: 500;
-}
+.modal-btn { font-size: 13px; padding: 6px 16px; border-radius: 8px; cursor: pointer; border: 0.5px solid #ccc; background: transparent; color: #888; }
+.modal-btn.primary { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; font-weight: 500; }
 .modal-btn:hover { background: #f0f0ef; }
-.modal-btn.primary:hover { opacity: .85; }
 </style>
 </head>
 <body>
@@ -200,17 +131,13 @@ body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-cont
     </div>
   </div>
 
-  <!-- 월 칩 (선택 데이터 있으면 컬러 도트) -->
+  <!-- 월 칩: 데이터 있으면 파란 배경 + 흰 글자 -->
   <div class="month-row" id="monthRow"></div>
 
   <!-- 요일 헤더 -->
   <div class="dow-row">
-    <div class="dow sun">일</div>
-    <div class="dow">월</div>
-    <div class="dow">화</div>
-    <div class="dow">수</div>
-    <div class="dow">목</div>
-    <div class="dow">금</div>
+    <div class="dow sun">일</div><div class="dow">월</div><div class="dow">화</div>
+    <div class="dow">수</div><div class="dow">목</div><div class="dow">금</div>
     <div class="dow sat">토</div>
   </div>
 
@@ -229,16 +156,22 @@ body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-cont
 
   <!-- 버튼 행 -->
   <div class="btn-row">
-    <button class="action-btn today-btn"  id="todayBtn">
+    <button class="action-btn today-btn"   id="todayBtn">
       <i class="ti ti-home" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>오늘로 이동
     </button>
-    <button class="action-btn export-btn" id="exportBtn">
+    <button class="action-btn export-btn"  id="exportBtn">
       <i class="ti ti-download" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>저장 (JSON)
     </button>
-    <button class="action-btn" id="importBtn">
+    <button class="action-btn"             id="importBtn">
       <i class="ti ti-upload" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>불러오기
     </button>
-    <button class="action-btn" id="clearBtn">
+    <button class="action-btn gh-save-btn" id="ghSaveBtn">
+      <i class="ti ti-brand-github" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>GitHub 저장
+    </button>
+    <button class="action-btn gh-load-btn" id="ghLoadBtn">
+      <i class="ti ti-brand-github" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>GitHub 불러오기
+    </button>
+    <button class="action-btn"             id="clearBtn">
       <i class="ti ti-trash" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>이번 달 초기화
     </button>
   </div>
@@ -253,6 +186,33 @@ body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-cont
     </div>
     <div class="diff-list" id="diffList">
       <div class="diff-empty">날짜를 2개 이상 선택하면 간격이 표시됩니다.</div>
+    </div>
+  </div>
+
+  <!-- GitHub 설정 패널 -->
+  <div class="gh-section">
+    <div class="gh-title">
+      <i class="ti ti-brand-github" style="font-size:15px"></i>GitHub 연동 설정
+    </div>
+    <div class="gh-fields">
+      <div class="gh-row">
+        <div class="gh-field" style="flex:1">
+          <div class="gh-label">저장소 (owner/repo)</div>
+          <input class="gh-input" id="ghRepo" placeholder="예: username/my-calendar">
+        </div>
+        <div class="gh-field" style="flex:1">
+          <div class="gh-label">파일 경로</div>
+          <input class="gh-input" id="ghPath" placeholder="data/calendar.json" value="data/calendar.json">
+        </div>
+      </div>
+      <div class="gh-field">
+        <div class="gh-label">Personal Access Token <span style="color:#ef4444">*</span></div>
+        <input class="gh-input" id="ghToken" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx">
+      </div>
+    </div>
+    <div class="gh-hint">
+      ⚠️ 토큰은 이 기기의 localStorage에만 저장되며 외부로 전송되지 않습니다.<br>
+      토큰 발급: GitHub → Settings → Developer settings → Personal access tokens → <b>repo</b> 권한 필요
     </div>
   </div>
 </div>
@@ -281,6 +241,7 @@ const MONTHS      = ['1월','2월','3월','4월','5월','6월','7월','8월','9�
 const COLOR_NAMES = { 1:'하늘색', 2:'민트', 3:'핑크', 4:'노랑', 5:'보라' };
 const COLOR_HEX   = { 1:'#bde0fe', 2:'#b5ead7', 3:'#ffc8dd', 4:'#ffd6a5', 5:'#d4a5c9' };
 const STORE_KEY   = 'cal_selected_v2';
+const GH_STORE    = 'cal_gh_settings';
 
 let today         = new Date();
 let view          = { y: today.getFullYear(), m: today.getMonth() };
@@ -289,7 +250,7 @@ let data          = {};
 let pendingImport = null;
 let toastTimer    = null;
 
-/* ── localStorage ── */
+/* ── localStorage: 달력 데이터 ── */
 function load() {
   try { const s = localStorage.getItem(STORE_KEY); if (s) data = JSON.parse(s); }
   catch(e) { data = {}; }
@@ -297,6 +258,28 @@ function load() {
 function save() {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); }
   catch(e) {}
+}
+
+/* ── localStorage: GitHub 설정 ── */
+function loadGhSettings() {
+  try {
+    const s = localStorage.getItem(GH_STORE);
+    if (s) {
+      const g = JSON.parse(s);
+      document.getElementById('ghRepo').value  = g.repo  || '';
+      document.getElementById('ghPath').value  = g.path  || 'data/calendar.json';
+      document.getElementById('ghToken').value = g.token || '';
+    }
+  } catch(e) {}
+}
+function saveGhSettings() {
+  try {
+    localStorage.setItem(GH_STORE, JSON.stringify({
+      repo:  document.getElementById('ghRepo').value.trim(),
+      path:  document.getElementById('ghPath').value.trim(),
+      token: document.getElementById('ghToken').value.trim()
+    }));
+  } catch(e) {}
 }
 
 /* ── 유틸 ── */
@@ -317,36 +300,28 @@ function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
 }
 
-/* 해당 연도·월에서 가장 많이 쓰인 색상 반환 */
-function monthDotColor(y, m) {
+/* 해당 연도·월에 선택된 날짜가 있는지 확인 */
+function hasDataInMonth(y, m) {
   const prefix = `${y}-${m + 1}-`;
-  const colors = Object.entries(data)
-    .filter(([k]) => k.startsWith(prefix))
-    .map(([, v]) => v);
-  if (!colors.length) return null;
-  const cnt = {};
-  colors.forEach(c => { cnt[c] = (cnt[c] || 0) + 1; });
-  return +Object.entries(cnt).sort((a, b) => b[1] - a[1])[0][0];
+  return Object.keys(data).some(k => k.startsWith(prefix));
 }
 
 /* ── 날짜 간격 렌더링 ── */
 function renderDiff() {
   const list   = document.getElementById('diffList');
   const sorted = Object.keys(data).sort((a, b) => keyToDate(a) - keyToDate(b));
-
   if (sorted.length < 2) {
     list.innerHTML = '<div class="diff-empty">날짜를 2개 이상 선택하면 간격이 표시됩니다.</div>';
     return;
   }
-
   let html = '';
   for (let i = 1; i < sorted.length; i++) {
     const prev = sorted[i - 1], cur = sorted[i];
-    const ms   = keyToDate(cur) - keyToDate(prev);
-    const c    = data[prev];
+    const ms = keyToDate(cur) - keyToDate(prev);
+    const c  = data[prev];
     html += `
       <div class="diff-row">
         <div class="diff-dot" style="background:${COLOR_HEX[c]}"></div>
@@ -364,15 +339,18 @@ function render() {
   document.getElementById('yearLabel').textContent  = view.y + '년';
   document.getElementById('monthLabel').textContent = MONTHS[view.m];
 
-  /* 월 칩 */
+  /* 월 칩: 데이터 있으면 파란 배경 + 흰 글자, 현재 달은 더 진한 파란색 */
   const mr = document.getElementById('monthRow');
   mr.innerHTML = '';
   MONTHS.forEach((mn, i) => {
-    const dc = monthDotColor(view.y, i);
-    const b  = document.createElement('button');
-    b.className = 'month-chip' + (i === view.m ? ' active' : '') + (dc ? ' has-data' : '');
-    b.innerHTML = `<span class="chip-dot" style="background:${COLOR_HEX[dc]}"></span>${mn}`;
-    b.onclick   = () => { view.m = i; render(); };
+    const hasDat = hasDataInMonth(view.y, i);
+    const b = document.createElement('button');
+    let cls = 'month-chip';
+    if (hasDat)      cls += ' has-data';
+    if (i === view.m) cls += ' active';
+    b.className   = cls;
+    b.textContent = mn;
+    b.onclick     = () => { view.m = i; render(); };
     mr.appendChild(b);
   });
 
@@ -387,22 +365,16 @@ function render() {
     c.className = 'day-cell empty';
     grid.appendChild(c);
   }
-
   for (let d = 1; d <= lastDay; d++) {
     const dow = (firstDow + d - 1) % 7;
     const c   = document.createElement('div');
     let cls   = 'day-cell';
     if (dow === 0) cls += ' sun';
     if (dow === 6) cls += ' sat';
-
-    const isToday = d === today.getDate()
-                 && view.m === today.getMonth()
-                 && view.y === today.getFullYear();
+    const isToday = d === today.getDate() && view.m === today.getMonth() && view.y === today.getFullYear();
     if (isToday) cls += ' today';
-
     const k = key(view.y, view.m, d);
     if (data[k]) cls += ' selected-' + data[k];
-
     c.className   = cls;
     c.textContent = d;
     c.onclick     = () => toggleDay(d);
@@ -433,80 +405,130 @@ function toggleDay(d) {
   render();
 }
 
-/* ── 내보내기: JSON 파일 다운로드 ── */
+/* ── 로컬 내보내기 ── */
 function exportData() {
   const count = Object.keys(data).length;
   if (count === 0) { showToast('저장할 데이터가 없습니다'); return; }
-
-  const payload = {
-    version:    1,
-    exportedAt: new Date().toISOString(),
-    data
-  };
+  const payload = { version: 1, exportedAt: new Date().toISOString(), data };
   const blob    = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url     = URL.createObjectURL(blob);
   const a       = document.createElement('a');
-  const dateStr = new Date().toISOString().slice(0, 10);
-
-  a.href     = url;
-  a.download = `calendar_${dateStr}.json`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  a.href        = url;
+  a.download    = `calendar_${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
-
   showToast(`${count}개 날짜를 파일로 저장했습니다`);
 }
 
-/* ── 불러오기: 파일 읽기 → 모달 확인 ── */
+/* ── 로컬 불러오기 ── */
 function importData(file) {
   const reader = new FileReader();
   reader.onload = e => {
     try {
       const parsed   = JSON.parse(e.target.result);
-      const imported = parsed.data || parsed; // 구버전 호환
+      const imported = parsed.data || parsed;
       if (typeof imported !== 'object' || Array.isArray(imported)) throw new Error();
-
       const count    = Object.keys(imported).length;
       pendingImport  = imported;
       const existing = Object.keys(data).length;
-
       document.getElementById('modalMsg').textContent =
         `파일에 ${count}개의 날짜 데이터가 있습니다.` +
         (existing ? ` 현재 기기에 저장된 데이터(${existing}개)와 어떻게 합칠까요?` : '');
       document.getElementById('modalBg').classList.add('show');
-    } catch {
-      showToast('올바른 달력 파일이 아닙니다');
-    }
+    } catch { showToast('올바른 달력 파일이 아닙니다'); }
   };
   reader.readAsText(file);
 }
 
-/* ── 버튼 이벤트 ── */
-document.getElementById('exportBtn').onclick = exportData;
-document.getElementById('importBtn').onclick = () => document.getElementById('fileInput').click();
-document.getElementById('fileInput').onchange = e => {
-  if (e.target.files[0]) importData(e.target.files[0]);
-  e.target.value = ''; // 같은 파일 재선택 허용
-};
+/* ── GitHub 설정 읽기 ── */
+function getGhConfig() {
+  const repo  = document.getElementById('ghRepo').value.trim();
+  const path  = document.getElementById('ghPath').value.trim() || 'data/calendar.json';
+  const token = document.getElementById('ghToken').value.trim();
+  if (!repo || !token) { showToast('저장소와 토큰을 먼저 입력해주세요'); return null; }
+  saveGhSettings();
+  return { repo, path, token };
+}
 
-/* 모달 버튼 */
-document.getElementById('modalCancel').onclick = () => {
-  document.getElementById('modalBg').classList.remove('show');
-  pendingImport = null;
-};
-document.getElementById('modalMerge').onclick = () => {
+/* ── GitHub 저장 ── */
+async function ghSave() {
+  const cfg   = getGhConfig(); if (!cfg) return;
+  const count = Object.keys(data).length;
+  if (count === 0) { showToast('저장할 데이터가 없습니다'); return; }
+  showToast('GitHub에 저장 중...');
+  try {
+    const payload = { version: 1, exportedAt: new Date().toISOString(), data };
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+
+    // 기존 파일 SHA 조회 (업데이트 시 필요)
+    let sha;
+    const getRes = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}`, {
+      headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json' }
+    });
+    if (getRes.ok) { const j = await getRes.json(); sha = j.sha; }
+
+    // 파일 생성 또는 업데이트
+    const body = {
+      message: `📅 달력 데이터 업데이트 (${new Date().toLocaleDateString('ko-KR')})`,
+      content
+    };
+    if (sha) body.sha = sha;
+
+    const putRes = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}`, {
+      method:  'PUT',
+      headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json' },
+      body:    JSON.stringify(body)
+    });
+    if (!putRes.ok) { const e = await putRes.json(); throw new Error(e.message || putRes.status); }
+    showToast(`✅ GitHub에 ${count}개 날짜를 저장했습니다`);
+  } catch(e) { showToast('❌ 저장 실패: ' + e.message); }
+}
+
+/* ── GitHub 불러오기 ── */
+async function ghLoad() {
+  const cfg = getGhConfig(); if (!cfg) return;
+  showToast('GitHub에서 불러오는 중...');
+  try {
+    const res = await fetch(`https://api.github.com/repos/${cfg.repo}/contents/${cfg.path}`, {
+      headers: { Authorization: `Bearer ${cfg.token}`, Accept: 'application/vnd.github+json' }
+    });
+    if (res.status === 404) { showToast('❌ 파일을 찾을 수 없습니다'); return; }
+    if (!res.ok) throw new Error(res.status);
+
+    const j        = await res.json();
+    const decoded  = decodeURIComponent(escape(atob(j.content.replace(/\n/g, ''))));
+    const parsed   = JSON.parse(decoded);
+    const imported = parsed.data || parsed;
+    if (typeof imported !== 'object' || Array.isArray(imported)) throw new Error('잘못된 형식');
+
+    const count    = Object.keys(imported).length;
+    pendingImport  = imported;
+    const existing = Object.keys(data).length;
+    document.getElementById('modalMsg').textContent =
+      `GitHub 파일에 ${count}개의 날짜 데이터가 있습니다.` +
+      (existing ? ` 현재 기기에 저장된 데이터(${existing}개)와 어떻게 합칠까요?` : '');
+    document.getElementById('modalBg').classList.add('show');
+  } catch(e) { showToast('❌ 불러오기 실패: ' + e.message); }
+}
+
+/* ── 버튼 이벤트 ── */
+document.getElementById('exportBtn').onclick  = exportData;
+document.getElementById('importBtn').onclick  = () => document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange = e => { if (e.target.files[0]) importData(e.target.files[0]); e.target.value = ''; };
+document.getElementById('ghSaveBtn').onclick  = ghSave;
+document.getElementById('ghLoadBtn').onclick  = ghLoad;
+
+document.getElementById('modalCancel').onclick = () => { document.getElementById('modalBg').classList.remove('show'); pendingImport = null; };
+document.getElementById('modalMerge').onclick  = () => {
   if (!pendingImport) return;
-  Object.assign(data, pendingImport); // 불러온 데이터 우선
-  save(); render();
+  Object.assign(data, pendingImport); save(); render();
   document.getElementById('modalBg').classList.remove('show');
   showToast(`데이터를 합쳤습니다 (총 ${Object.keys(data).length}개)`);
   pendingImport = null;
 };
 document.getElementById('modalReplace').onclick = () => {
   if (!pendingImport) return;
-  data = pendingImport;
-  save(); render();
+  data = pendingImport; save(); render();
   document.getElementById('modalBg').classList.remove('show');
   showToast(`${Object.keys(data).length}개 날짜를 불러왔습니다`);
   pendingImport = null;
@@ -529,12 +551,12 @@ document.querySelectorAll('.color-dot').forEach(dot => {
 document.getElementById('clearBtn').onclick = () => {
   const prefix = `${view.y}-${view.m + 1}-`;
   Object.keys(data).forEach(k => { if (k.startsWith(prefix)) delete data[k]; });
-  save();
-  render();
+  save(); render();
 };
 
 /* ── 초기 실행 ── */
 load();
+loadGhSettings();
 render();
 </script>
 </body>
