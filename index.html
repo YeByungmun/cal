@@ -47,8 +47,6 @@ body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-cont
   background: #dbeafe; color: #1d4ed8;
   border-color: #93c5fd; font-weight: 500;
 }
-
-/* 선택 데이터가 있는 월의 도트 */
 .chip-dot {
   width: 7px; height: 7px; border-radius: 50%;
   flex-shrink: 0; display: none;
@@ -82,8 +80,6 @@ body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-cont
 .day-cell.today  { border-color: #3b82f6; font-weight: 500; color: #1d4ed8; }
 .day-cell.sun    { color: #ef4444; }
 .day-cell.sat    { color: #3b82f6; }
-
-/* ── 선택 색상 5종 ── */
 .day-cell.selected-1 { background: #bde0fe; color: #0c447c; }
 .day-cell.selected-2 { background: #b5ead7; color: #085041; }
 .day-cell.selected-3 { background: #ffc8dd; color: #72243e; }
@@ -112,9 +108,11 @@ body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-cont
   border-radius: 8px; color: #888;
   transition: background .15s;
 }
-.action-btn:hover { background: #f0f0ef; }
-.today-btn { border-color: #93c5fd; color: #1d4ed8; font-weight: 500; }
-.today-btn:hover { background: #dbeafe; }
+.action-btn:hover  { background: #f0f0ef; }
+.today-btn  { border-color: #93c5fd; color: #1d4ed8; font-weight: 500; }
+.today-btn:hover  { background: #dbeafe; }
+.export-btn { border-color: #6ee7b7; color: #065f46; font-weight: 500; }
+.export-btn:hover { background: #d1fae5; }
 
 /* ── 범례 ── */
 .legend { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
@@ -144,6 +142,45 @@ body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-cont
 .diff-to   { font-weight: 500; min-width: 90px; }
 .diff-gap  { margin-left: auto; font-size: 12px; color: #1d4ed8; font-weight: 500; white-space: nowrap; }
 .diff-empty { font-size: 13px; color: #aaa; padding: 6px 0; }
+
+/* ── 토스트 ── */
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: 24px; background: #222; color: #fff;
+  font-size: 12px; padding: 7px 18px;
+  border-radius: 20px; opacity: 0;
+  transition: opacity .3s; pointer-events: none;
+  white-space: nowrap; z-index: 999;
+}
+.toast.show { opacity: 1; }
+
+/* ── 모달 ── */
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,.35); z-index: 100;
+  align-items: center; justify-content: center;
+}
+.modal-bg.show { display: flex; }
+.modal {
+  background: #fff; border-radius: 14px;
+  padding: 20px; max-width: 340px; width: 90%;
+  box-shadow: 0 8px 32px rgba(0,0,0,.18);
+}
+.modal h3 { font-size: 15px; font-weight: 600; margin-bottom: 8px; }
+.modal p  { font-size: 13px; color: #666; margin-bottom: 14px; line-height: 1.6; }
+.modal-btns { display: flex; gap: 8px; justify-content: flex-end; }
+.modal-btn {
+  font-size: 13px; padding: 6px 16px;
+  border-radius: 8px; cursor: pointer;
+  border: 0.5px solid #ccc;
+  background: transparent; color: #888;
+}
+.modal-btn.primary {
+  background: #dbeafe; color: #1d4ed8;
+  border-color: #93c5fd; font-weight: 500;
+}
+.modal-btn:hover { background: #f0f0ef; }
+.modal-btn.primary:hover { opacity: .85; }
 </style>
 </head>
 <body>
@@ -163,7 +200,7 @@ body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-cont
     </div>
   </div>
 
-  <!-- 월 빠른 선택 칩 (선택 데이터 있으면 컬러 도트 표시) -->
+  <!-- 월 칩 (선택 데이터 있으면 컬러 도트) -->
   <div class="month-row" id="monthRow"></div>
 
   <!-- 요일 헤더 -->
@@ -192,8 +229,14 @@ body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-cont
 
   <!-- 버튼 행 -->
   <div class="btn-row">
-    <button class="action-btn today-btn" id="todayBtn">
+    <button class="action-btn today-btn"  id="todayBtn">
       <i class="ti ti-home" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>오늘로 이동
+    </button>
+    <button class="action-btn export-btn" id="exportBtn">
+      <i class="ti ti-download" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>저장 (JSON)
+    </button>
+    <button class="action-btn" id="importBtn">
+      <i class="ti ti-upload" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>불러오기
     </button>
     <button class="action-btn" id="clearBtn">
       <i class="ti ti-trash" style="font-size:13px;vertical-align:-1px;margin-right:4px"></i>이번 달 초기화
@@ -214,16 +257,37 @@ body { font-family: sans-serif; background: #f9f9f7; display: flex; justify-cont
   </div>
 </div>
 
+<!-- 숨겨진 파일 입력 -->
+<input type="file" id="fileInput" accept=".json" style="display:none">
+
+<!-- 불러오기 확인 모달 -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3>데이터 불러오기</h3>
+    <p id="modalMsg"></p>
+    <div class="modal-btns">
+      <button class="modal-btn"         id="modalCancel">취소</button>
+      <button class="modal-btn primary" id="modalMerge">합치기</button>
+      <button class="modal-btn primary" id="modalReplace">덮어쓰기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
 <script>
 const MONTHS      = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
 const COLOR_NAMES = { 1:'하늘색', 2:'민트', 3:'핑크', 4:'노랑', 5:'보라' };
 const COLOR_HEX   = { 1:'#bde0fe', 2:'#b5ead7', 3:'#ffc8dd', 4:'#ffd6a5', 5:'#d4a5c9' };
 const STORE_KEY   = 'cal_selected_v2';
 
-let today  = new Date();
-let view   = { y: today.getFullYear(), m: today.getMonth() };
-let picked = 1;
-let data   = {};
+let today         = new Date();
+let view          = { y: today.getFullYear(), m: today.getMonth() };
+let picked        = 1;
+let data          = {};
+let pendingImport = null;
+let toastTimer    = null;
 
 /* ── localStorage ── */
 function load() {
@@ -249,10 +313,14 @@ function diffLabel(ms) {
   return `${mo}개월 ${dy}일 (총 ${td}일)`;
 }
 
-/*
- * 해당 연도·월에 선택된 날짜 중 가장 많이 쓰인 색상 번호를 반환.
- * 선택된 날짜가 없으면 null 반환.
- */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+/* 해당 연도·월에서 가장 많이 쓰인 색상 반환 */
 function monthDotColor(y, m) {
   const prefix = `${y}-${m + 1}-`;
   const colors = Object.entries(data)
@@ -296,14 +364,14 @@ function render() {
   document.getElementById('yearLabel').textContent  = view.y + '년';
   document.getElementById('monthLabel').textContent = MONTHS[view.m];
 
-  /* 월 칩: 선택 데이터가 있는 월에는 컬러 도트 표시 */
+  /* 월 칩 */
   const mr = document.getElementById('monthRow');
   mr.innerHTML = '';
   MONTHS.forEach((mn, i) => {
-    const dotColor = monthDotColor(view.y, i);
-    const b = document.createElement('button');
-    b.className = 'month-chip' + (i === view.m ? ' active' : '') + (dotColor ? ' has-data' : '');
-    b.innerHTML = `<span class="chip-dot" style="background:${COLOR_HEX[dotColor]}"></span>${mn}`;
+    const dc = monthDotColor(view.y, i);
+    const b  = document.createElement('button');
+    b.className = 'month-chip' + (i === view.m ? ' active' : '') + (dc ? ' has-data' : '');
+    b.innerHTML = `<span class="chip-dot" style="background:${COLOR_HEX[dc]}"></span>${mn}`;
     b.onclick   = () => { view.m = i; render(); };
     mr.appendChild(b);
   });
@@ -365,7 +433,85 @@ function toggleDay(d) {
   render();
 }
 
+/* ── 내보내기: JSON 파일 다운로드 ── */
+function exportData() {
+  const count = Object.keys(data).length;
+  if (count === 0) { showToast('저장할 데이터가 없습니다'); return; }
+
+  const payload = {
+    version:    1,
+    exportedAt: new Date().toISOString(),
+    data
+  };
+  const blob    = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url     = URL.createObjectURL(blob);
+  const a       = document.createElement('a');
+  const dateStr = new Date().toISOString().slice(0, 10);
+
+  a.href     = url;
+  a.download = `calendar_${dateStr}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+
+  showToast(`${count}개 날짜를 파일로 저장했습니다`);
+}
+
+/* ── 불러오기: 파일 읽기 → 모달 확인 ── */
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed   = JSON.parse(e.target.result);
+      const imported = parsed.data || parsed; // 구버전 호환
+      if (typeof imported !== 'object' || Array.isArray(imported)) throw new Error();
+
+      const count    = Object.keys(imported).length;
+      pendingImport  = imported;
+      const existing = Object.keys(data).length;
+
+      document.getElementById('modalMsg').textContent =
+        `파일에 ${count}개의 날짜 데이터가 있습니다.` +
+        (existing ? ` 현재 기기에 저장된 데이터(${existing}개)와 어떻게 합칠까요?` : '');
+      document.getElementById('modalBg').classList.add('show');
+    } catch {
+      showToast('올바른 달력 파일이 아닙니다');
+    }
+  };
+  reader.readAsText(file);
+}
+
 /* ── 버튼 이벤트 ── */
+document.getElementById('exportBtn').onclick = exportData;
+document.getElementById('importBtn').onclick = () => document.getElementById('fileInput').click();
+document.getElementById('fileInput').onchange = e => {
+  if (e.target.files[0]) importData(e.target.files[0]);
+  e.target.value = ''; // 같은 파일 재선택 허용
+};
+
+/* 모달 버튼 */
+document.getElementById('modalCancel').onclick = () => {
+  document.getElementById('modalBg').classList.remove('show');
+  pendingImport = null;
+};
+document.getElementById('modalMerge').onclick = () => {
+  if (!pendingImport) return;
+  Object.assign(data, pendingImport); // 불러온 데이터 우선
+  save(); render();
+  document.getElementById('modalBg').classList.remove('show');
+  showToast(`데이터를 합쳤습니다 (총 ${Object.keys(data).length}개)`);
+  pendingImport = null;
+};
+document.getElementById('modalReplace').onclick = () => {
+  if (!pendingImport) return;
+  data = pendingImport;
+  save(); render();
+  document.getElementById('modalBg').classList.remove('show');
+  showToast(`${Object.keys(data).length}개 날짜를 불러왔습니다`);
+  pendingImport = null;
+};
+
 document.getElementById('todayBtn').onclick  = () => { view = { y: today.getFullYear(), m: today.getMonth() }; render(); };
 document.getElementById('prevYear').onclick  = () => { view.y--; render(); };
 document.getElementById('nextYear').onclick  = () => { view.y++; render(); };
